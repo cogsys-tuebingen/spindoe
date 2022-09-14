@@ -1,0 +1,2 @@
+# spindoe
+Dot-pattern-based spin estimation method for table tennis balls
