@@ -11,17 +11,20 @@ from torchvision.io import read_image
 import matplotlib.pyplot as plt
 
 
-def read_ball_image(img_path, size=60):
+def read_ball_image(img_path, size=60, RGB=True):
     img = read_image(str(img_path))
     img = T.Resize((size, size))(img)
+    if not RGB:
+        img =T.Grayscale()(img)
+    # Convert image to range [0,1] and floats
     img = img.float() / 255.0
     return img
 
 
-def read_ball_images(img_paths, size=60):
+def read_ball_images(img_paths, size=60, RGB=True):
     imgs = []
     for path in img_paths:
-        img = read_ball_image(path)
+        img = read_ball_image(path, size=size, RGB=RGB)
         imgs.append(img)
     imgs = torch.stack(imgs)
     return imgs
@@ -59,11 +62,8 @@ class DotDataset(Dataset):
     def __getitem__(self, idx):
         img_path = self.index[0][idx]
         quat = self.index.loc[idx, 1:4].to_numpy(dtype=np.float64)
-        img = read_image(img_path)
+        img = read_ball_image(img_path, size=self.size,RGB=self.RGB)
         height, width = img.shape[1:]
-        img = self.resize(img)
-        if self.RGB == False:
-            img = T.Grayscale()(img)
 
         # Generate the heatmap
         dots = self.get_dots(idx)
@@ -72,9 +72,9 @@ class DotDataset(Dataset):
 
         if self.transform:
             img, heatmap = self.transform(img, heatmap)
+            # plt.imshow(img.squeeze())
+            # plt.show()
 
-        # Convert image to range [0,1] and floats
-        img = img.float() / 255.0
         return img, heatmap, quat
 
     def get_dots(self, idx):

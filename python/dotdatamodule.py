@@ -17,7 +17,7 @@ from data_augmentation import MotionBlur, RandomFlip, CustomCompose
 
 data_aug_transform = CustomCompose(
     [
-        MotionBlur(),
+        # MotionBlur(),
         RandomFlip(),
         # T.ColorJitter(brightness=0.05, contrast=0.05, saturation=0.05, hue=0.05), # TODO: Add color jitter for two elements
     ]

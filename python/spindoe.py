@@ -69,7 +69,7 @@ class SpinDOE:
 if __name__ == "__main__":
 
     dot_detector_model = Path(
-        "/home/gossard/Git/spindoe/python/lightning_logs/version_16/checkpoints/epoch=28-step=6380.ckpt"
+        "/home/gossard/Git/spindoe/python/tb_logs/default/version_10/checkpoints/epoch=4-step=1099.ckpt"
     )
     # Get the images from the test directory
     img_dir = Path.cwd().parent / "data" / "test"

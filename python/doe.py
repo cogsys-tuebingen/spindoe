@@ -53,11 +53,11 @@ class DOE:
         # params.minInertiaRatio = 0
         # params.maxInertiaRatio = 0
         params.filterByArea = True
-        params.minArea = 0
+        params.minArea = 1
         params.maxArea = 30
         params.filterByColor = True
         params.blobColor = 255
-        params.minDistBetweenBlobs = 0
+        params.minDistBetweenBlobs = 1
         # params.minThreshold = 100
         # params.maxThreshold = 255
         # params.thresholdStep = 20
@@ -152,7 +152,7 @@ class DOE:
 
 if __name__ == "__main__":
     dot_detector_model = Path(
-        "/home/gossard/Git/spindoe/python/lightning_logs/version_16/checkpoints/epoch=28-step=6380.ckpt"
+        "/home/gossard/Git/spindoe/python/tb_logs/default/version_10/checkpoints/epoch=4-step=1099.ckpt"
     )
     # Test the doe
     doe = DOE(dot_detector_model)

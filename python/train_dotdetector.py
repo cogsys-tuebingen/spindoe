@@ -4,12 +4,12 @@ import pytorch_lightning as pl
 from argparse import ArgumentParser
 from dotdatamodule import DotDataModule
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
-from pytorch_lightning.loggers.loggers import TensorBoardLogger
+from pytorch_lightning.loggers import TensorBoardLogger
 
 if __name__ == "__main__":
     pl.seed_everything(0, workers=True)
     # wandb_logger = WandbLogger(project="dot_detection")
-    logger = TensorBoardLogger()
+    logger = TensorBoardLogger("tb_logs")
 
     parser = ArgumentParser(description="Training and model parameters")
     # Add model specific args
@@ -36,7 +36,7 @@ if __name__ == "__main__":
     data_dir = Path(
         "/home/gossard/Code/tt_ws/src/tt_tracking_system/tt_spindetection/spin_motor_dots_andro_ball/"
     )
-    data = DotDataModule(data_dir, data_aug=True)
+    data = DotDataModule(data_dir, RGB=True, data_aug=True)
     detector = DotDetector(**dict_args)
     trainer.fit(detector, data)
     trainer.test(detector, data)

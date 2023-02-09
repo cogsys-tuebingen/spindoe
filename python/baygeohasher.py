@@ -4,6 +4,7 @@ Based on:  https://www.researchgate.net/publication/3344381_Geometric_Hashing_An
 """
 
 import numpy as np
+import time
 from tqdm import tqdm
 from utils import read_pattern, write_pattern
 from scipy.spatial.transform import Rotation as R
@@ -291,6 +292,7 @@ if __name__ == "__main__":
     successes = 0
     few_features_problem = 0
     avg_features = 0
+    t0 = time.time()
     for _ in tqdm(range(n_tests)):
         random_rotation = R.random()
         all_dots_rotated = random_rotation.apply(ref_pattern)
@@ -313,7 +315,8 @@ if __name__ == "__main__":
         #     print(False)
         # print()
         successes += int(success)
-
+    t_tot = (time.time()-t0)
+    print("Time for a single run: {}".format(t_tot/n_tests))
     success_rate = successes / n_tests * 100
     print("Test: recognise random view")
     print("Success rate: ", success_rate, "%")
