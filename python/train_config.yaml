@@ -1,0 +1,18 @@
+seed_everything: 42
+model:
+  layers: 64, 64, 128, 128, 256, 256, 512, 128, 128, 64, 64
+  input: rgb 
+  act_fn: leaky_relu
+  last_act_fn: sigmoid
+  loss_fn: focal_loss
+data:
+  data_dir: /home/gossard/Code/tt_ws/src/tt_tracking_system/tt_spindetection/spin_motor_dots_andro_ball/
+  batch_size: 32 
+  RGB: True 
+  data_aug: False
+trainer:
+  accelerator: gpu
+  callbacks:
+    - class_path: pytorch_lightning.callbacks.EarlyStopping
+      init_args:
+        monitor: val_loss

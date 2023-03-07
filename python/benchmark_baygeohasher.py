@@ -65,7 +65,7 @@ if __name__ == "__main__":
     # Settings of the MC benchmark test
     n_samples = 500
     n_points_used = 4
-    stds = np.linspace(0, 0.1, 10)
+    stds = np.linspace(0.01, 0.1, 10)
     prj_scales = np.logspace(-2, 0.5, 6)
 
     # Initialize the Bayesian Geometric Hasher

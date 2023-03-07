@@ -27,14 +27,14 @@ data_aug_transform = CustomCompose(
 class DotDataModule(pl.LightningDataModule):
     def __init__(
         self,
-        data_dir: Path,
+        data_dir: str,
         batch_size: int = 32,
         RGB: bool = True,
         num_workers: int = 8,
         data_aug: bool = False,  # TODO: Implement data_auf
     ):
         super().__init__()
-        self.data_dir = data_dir
+        self.data_dir = Path(data_dir)
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.RGB = RGB

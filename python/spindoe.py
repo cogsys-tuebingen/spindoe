@@ -15,14 +15,17 @@ from spin_regressor import SpinRegressor
 
 class SpinDOE:
     def __init__(self, dot_detector_model):
-        self.doe = DOE(dot_detector_model)
+        self.doe = DOE(dot_detector_model, True)
         self.spin_regressor = SpinRegressor()
 
     def estimate(self, t, imgs):
         rots = []
         heatmaps = []
         for img in imgs:
-            rot, mask, heatmap = self.doe.estimate(img)
+            # img = cv2.cvtColor(imgs[i], cv2.COLOR_BGR2GRAY)
+            rot, mask, heatmap = self.doe.estimate_single(img)
+            plt.imshow(heatmap)
+            plt.show()
             rots.append(rot)
             heatmaps.append(heatmap)
 
@@ -35,7 +38,7 @@ class SpinDOE:
         n = len(imgs)
         aug_imgs = []
         for i in range(n):
-            img = cv2.cvtColor(imgs[i], cv2.COLOR_BGR2RGB)
+            img = cv2.cvtColor(imgs[i], cv2.COLOR_BGR2GRAY)
             aug_img = self.doe.reproject_dots(rots[i], img)
             # fig, axs = plt.subplots(3)
             # axs[0].imshow(heatmap)
@@ -69,10 +72,11 @@ class SpinDOE:
 if __name__ == "__main__":
 
     dot_detector_model = Path(
-        "/home/gossard/Git/spindoe/python/tb_logs/default/version_10/checkpoints/epoch=4-step=1099.ckpt"
+        "/home/gossard/Git/spindoe/python/lightning_logs/version_31/checkpoints/epoch=5-step=1320.ckpt"
     )
     # Get the images from the test directory
-    img_dir = Path.cwd().parent / "data" / "test"
+    # img_dir = Path.cwd().parent / "data" / "test"
+    img_dir = Path("/home/gossard/Nextcloud/tabletennis/trajectory_dataset/2")
     img_paths = sorted(list(img_dir.glob("*.png")))
     imgs = []
     times = []
@@ -80,6 +84,9 @@ if __name__ == "__main__":
         t = get_time(path)
         times.append(t)
         img = cv2.imread(str(path))
+        img = img[11:-11, 11:-11]
+        # plt.imshow(img)
+        # plt.show()
         imgs.append(img)
 
     times = np.array(times)

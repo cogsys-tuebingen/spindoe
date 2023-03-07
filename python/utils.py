@@ -34,8 +34,5 @@ def write_pattern(file_path, points):
 def get_time(path):
     parts = str(path).split("/")
     time = parts[-1][:-4]
-    second, millisec = time.split("s")
-    second = int(second)
-    millisec = int(millisec)
-    t = second + millisec / 1e9
+    t = int(time) * 1e-9
     return t

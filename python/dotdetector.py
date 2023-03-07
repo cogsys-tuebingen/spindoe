@@ -23,55 +23,60 @@ class Layer(nn.Module):
 
 
 class DotDetector(pl.LightningModule):
-    def __init__(self, *args, **kwargs):
+    def __init__(
+        self,
+        input="rgb",
+        layers="64, 64, 128, 128,  256, 256, 128, 128, 64, 64",
+        act_fn="leaky_relu",
+        last_act_fn="sigmoid",
+        loss_fn="focal_loss",
+    ):
         super().__init__()
 
         ## Specifying the model hyperparmeters
         # Type of the input image
-        if kwargs["input"] == "rgb":
+        if input == "rgb":
             self.input = "rgb"
             prev_dim = 3
-        elif kwargs["input"] == "grayscale":
+        elif input == "grayscale":
             self.input = "grayscale"
             prev_dim = 1
         else:
             raise ValueError("Wrong input defined")
 
         # Activation function used
-        if kwargs["act_fn"] == "relu":
-            act_fn = nn.ReLU()
-        elif kwargs["act_fn"] == "leaky_relu":
-            act_fn = nn.LeakyReLU()
+        if act_fn == "relu":
+            self.act_fn = nn.ReLU()
+        elif act_fn == "leaky_relu":
+            self.act_fn = nn.LeakyReLU()
         else:
             raise ValueError("Activation function not implemented")
 
         # Activation function used for the last layer
-        if kwargs["last_act_fn"] == "sigmoid":
+        if last_act_fn == "sigmoid":
             self.last_act_fn = torch.sigmoid
-        elif kwargs["last_act_fn"] == "hardsigmoid":
+        elif last_act_fn == "hardsigmoid":
             self.last_act_fn = F.hardsigmoid
         else:
-            raise ValueError(
-                "last_act_fn: {} is not supported".format(kwargs["last_act_fn"])
-            )
+            raise ValueError("last_act_fn: {} is not supported".format(last_act_fn))
 
         # Loss used to train the model
-        if kwargs["loss_fn"] == "focal_loss":
+        if loss_fn == "focal_loss":
             self.loss_fn = FocalLoss()
-        elif kwargs["loss_fn"] == "L1":
+        elif loss_fn == "L1":
             self.loss_fn = nn.L1Loss()
         else:
-            raise ValueError("loss_fn: {} not supported".format(kwargs["loss_fn"]))
+            raise ValueError("loss_fn: {} not supported".format(loss_fn))
 
         ## Creating the NN architecture
         self.layers = []
-        for dim in tuple(map(int, kwargs["layers"].split(","))):
+        for dim in tuple(map(int, layers.split(","))):
             if prev_dim not in (1, 3):
                 if prev_dim < dim:
                     self.layers.append(nn.MaxPool2d(2, stride=2, padding=0))
                 elif prev_dim > dim:
                     self.layers.append(nn.Upsample(scale_factor=2))
-            self.layers.append(Layer(prev_dim, dim))
+            self.layers.append(Layer(prev_dim, dim, self.act_fn))
             prev_dim = dim
         # Add the last layer that outputs the head
         self.layers.append(nn.Conv2d(prev_dim, 1, 1, padding=0))
@@ -79,20 +84,6 @@ class DotDetector(pl.LightningModule):
 
         print("Saving hyperparmeters")
         self.save_hyperparameters()
-
-    @staticmethod
-    def add_model_specific_args(parent_parser):
-        parser = parent_parser.add_argument_group("CnnDotDetector")
-        parser.add_argument("--last_act_fn", type=str, default="sigmoid")
-        parser.add_argument("--act_fn", type=str, default="leaky_relu")
-        parser.add_argument("--loss_fn", type=str, default="focal_loss")
-        parser.add_argument(
-            "--layers",
-            type=str,
-            default="64, 64, 128, 128,  256, 256, 128, 128, 64, 64",
-        )
-        parser.add_argument("--input", type=str, default="rgb")
-        return parent_parser
 
     def forward(self, x):
         x = self.nn(x)

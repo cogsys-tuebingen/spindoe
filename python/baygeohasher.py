@@ -17,8 +17,8 @@ class BayGeoHasher:
     def __init__(
         self,
         threshold: float = -5e4,
-        k_neighbour: int = 10,
-        upper_score_perc: int = 50,
+        k_neighbour: int = 6,
+        upper_score_perc: int = 60,
         projection_ll_scale: float = 0.03,
         min_feature_dist: float = 3,  # HACK: should be 1.8
         kappa: float = 5e2,
@@ -116,18 +116,16 @@ class BayGeoHasher:
         p = []
         _, theta, phi = self.asSpherical(ball_point)
         kent_distr = kent(theta, phi, 0, self.kappa, self.beta)
-        for hash_value in hash_values:
-            cart_hash = self.hash2cart(basis, hash_value)
-            norm = np.linalg.norm(cart_hash)
-            cart_hash = cart_hash / norm
-            sphere_ll = kent_distr.pdf(cart_hash) * np.abs(np.linalg.det(basis))
-            proj_ll = scipy.stats.norm.pdf(norm, loc=1, scale=self.projection_ll_scale)
-            # print("norm_a: {}".format(norm_a))
-            # print("sphere_ll: {}".format(sphere_ll))
-            # print("proj_ll: {}".format(proj_ll))
-            ll = sphere_ll * proj_ll
-            p.append(np.max([ll, 1e-10]))
-        return np.log(p)
+        cart_hashs = self.hash2cart(basis, hash_values)
+        norms = np.linalg.norm(cart_hashs, axis=1)
+        cart_hashs = np.divide(cart_hashs.T, norms).T
+        sphere_lls = kent_distr.pdf(cart_hashs) * np.abs(
+            np.linalg.det(basis)
+        )  # normalizing factor
+        proj_lls = scipy.stats.norm.pdf(norms, loc=1, scale=self.projection_ll_scale)
+        lls = np.multiply(sphere_lls, proj_lls)
+        ps = np.maximum(lls, 1e-10)
+        return np.log(ps)
 
     def cart2hash(self, basis, points):
         """
@@ -190,7 +188,6 @@ class BayGeoHasher:
         # print(valid_idx)
         # print(valid_score)
         best_idx = np.argmax(valid_score)
-        # print(valid_idx[best_idx])
         # print(len(obs_points))
         # print(score_lim)
         # print(check_models)
@@ -315,8 +312,8 @@ if __name__ == "__main__":
         #     print(False)
         # print()
         successes += int(success)
-    t_tot = (time.time()-t0)
-    print("Time for a single run: {}".format(t_tot/n_tests))
+    t_tot = time.time() - t0
+    print("Time for a single run: {}".format(t_tot / n_tests))
     success_rate = successes / n_tests * 100
     print("Test: recognise random view")
     print("Success rate: ", success_rate, "%")
