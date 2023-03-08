@@ -52,7 +52,7 @@
       <div class="container is-max-desktop">
         <div class="columns is-centered">
           <div class="column has-text-centered">
-            <h1 class="title is-1 publication-title">Academic Project Page</h1>
+            <h1 class="title is-1 publication-title">SpinDOE: A ball spin estimation method for table tennis robot</h1>
             <div class="is-size-5 publication-authors">
               <!-- Paper authors -->
               <span class="author-block">
@@ -67,15 +67,14 @@
             </div>
 
             <div class="is-size-5 publication-authors">
-              <span class="author-block">Cognitive systems<br>Conferance name and year</span>
-              <!-- <span class="eql-cntrb"><small><br><sup>*</sup>Indicates Equal Contribution</small></span> -->
+              <span class="author-block">Cognitive systems, University of Tuebingen<br>Submitted to IROS 2023</span>
             </div>
 
             <div class="column has-text-centered">
               <div class="publication-links">
                 <!-- Arxiv PDF link -->
                 <span class="link-block">
-                  <a href="https://arxiv.org/pdf/<ARXIV PAPER ID>.pdf" target="_blank"
+                  <a href="https://arxiv.org/pdf/2303.03879.pdf" target="_blank"
                     class="external-link button is-normal is-rounded is-dark">
                     <span class="icon">
                       <i class="fas fa-file-pdf"></i>
@@ -83,17 +82,6 @@
                     <span>Paper</span>
                   </a>
                 </span>
-
-                <!-- <!-- Supplementary PDF link --> -->
-                <!-- <span class="link-block"> -->
-                <!--   <a href="static/pdfs/supplementary_material.pdf" target="_blank" -->
-                <!--     class="external-link button is-normal is-rounded is-dark"> -->
-                <!--     <span class="icon"> -->
-                <!--       <i class="fas fa-file-pdf"></i> -->
-                <!--     </span> -->
-                <!--     <span>Supplementary</span> -->
-                <!--   </a> -->
-                <!-- </span> -->
 
                 <!-- Github link -->
                 <span class="link-block">
@@ -108,12 +96,23 @@
 
                 <!-- ArXiv abstract Link -->
                 <span class="link-block">
-                  <a href="https://arxiv.org/abs/<ARXIV PAPER ID>" target="_blank"
+                  <a href="https://arxiv.org/abs/2303.03879" target="_blank"
                     class="external-link button is-normal is-rounded is-dark">
                     <span class="icon">
                       <i class="ai ai-arxiv"></i>
                     </span>
                     <span>arXiv</span>
+                  </a>
+                </span>
+
+                <!-- Dataset Link -->
+                <span class="link-block">
+                  <a href="https://github.com/cogsys-tuebingen/spindoe/tree/main/data/trajectories" target="_blank"
+                    class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon">
+                      <i class="fa fa-database"></i>
+                    </span>
+                    <span>Dataset</span>
                   </a>
                 </span>
               </div>
@@ -125,12 +124,12 @@
   </section>
 
 
-  <!-- <!-- Teaser video--> -->
+  <!-- Teaser video-->
   <!-- <section class="hero teaser"> -->
   <!--   <div class="container is-max-desktop"> -->
   <!--     <div class="hero-body"> -->
   <!--       <video poster="" id="tree" autoplay controls muted loop height="100%"> -->
-  <!--         <!-- Your video here --> -->
+          <!-- Your video here -->
   <!--         <source src="static/videos/banner_video.mp4" type="video/mp4"> -->
   <!--       </video> -->
   <!--       <h2 class="subtitle has-text-centered"> -->
@@ -140,58 +139,55 @@
   <!--     </div> -->
   <!--   </div> -->
   <!-- </section> -->
-  <!-- <!-- End teaser video --> -->
+  <!-- End teaser video -->
 
-  <!-- <!-- Paper abstract --> -->
-  <!-- <section class="section hero is-light"> -->
-  <!--   <div class="container is-max-desktop"> -->
-  <!--     <div class="columns is-centered has-text-centered"> -->
-  <!--       <div class="column is-four-fifths"> -->
-  <!--         <h2 class="title is-3">Abstract</h2> -->
-  <!--         <div class="content has-text-justified"> -->
-  <!--           <p> -->
-  <!--             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin ullamcorper tellus sed ante aliquam tempus. -->
-  <!--             Etiam porttitor urna feugiat nibh elementum, et tempor dolor mattis. Donec accumsan enim augue, a -->
-  <!--             vulputate nisi sodales sit amet. Proin bibendum ex eget mauris cursus euismod nec et nibh. Maecenas ac -->
-  <!--             gravida ante, nec cursus dui. Vivamus purus nibh, placerat ac purus eget, sagittis vestibulum metus. Sed -->
-  <!--             vestibulum bibendum lectus gravida commodo. Pellentesque auctor leo vitae sagittis suscipit. -->
-  <!--           </p> -->
-  <!--         </div> -->
-  <!--       </div> -->
-  <!--     </div> -->
-  <!--   </div> -->
-  <!-- </section> -->
-  <!-- <!-- End paper abstract --> -->
+  <!-- Paper abstract -->
+  <section class="section hero is-light">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered has-text-centered">
+        <div class="column is-four-fifths">
+          <h2 class="title is-3">Abstract</h2>
+          <div class="content has-text-justified">
+            <p>
+              Spin plays a considerable role in table tennis, making a shot's trajectory harder to read and predict. However, the spin is challenging to measure because of the ball's high velocity and the magnitude of the spin values. Existing methods either require extremely high framerate cameras or are unreliable because they use the ball's logo, which may not always be visible. Because of this, many table tennis-playing robots ignore the spin, which severely limits their capabilities. This paper proposes an easily implementable and reliable spin estimation method. We developed a dotted-ball orientation estimation (DOE) method, that can then be used to estimate the spin. The dots are first localized on the image using a CNN and then identified using geometric hashing. The spin is finally regressed from the estimated orientations. Using our algorithm, the ball's orientation can be estimated with a mean error of 2.4° and the spin estimation has an relative error lower than 1%. Spins up to 175 rps are measurable with a camera of 350 fps in real time. Using our method, we generated a dataset of table tennis ball trajectories with position and spin, available on our project page.
+            </p>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- End paper abstract -->
 
 
-  <!-- <!-- Image carousel --> -->
+  <!-- Image carousel -->
   <!-- <section class="hero is-small"> -->
   <!--   <div class="hero-body"> -->
   <!--     <div class="container"> -->
   <!--       <div id="results-carousel" class="carousel results-carousel"> -->
   <!--         <div class="item"> -->
-  <!--           <!-- Your image here --> -->
+            <!-- Your image here -->
   <!--           <img src="static/images/carousel1.jpg" alt="MY ALT TEXT" /> -->
   <!--           <h2 class="subtitle has-text-centered"> -->
   <!--             First image description. -->
   <!--           </h2> -->
   <!--         </div> -->
   <!--         <div class="item"> -->
-  <!--           <!-- Your image here --> -->
+            <!-- Your image here -->
   <!--           <img src="static/images/carousel2.jpg" alt="MY ALT TEXT" /> -->
   <!--           <h2 class="subtitle has-text-centered"> -->
   <!--             Second image description. -->
   <!--           </h2> -->
   <!--         </div> -->
   <!--         <div class="item"> -->
-  <!--           <!-- Your image here --> -->
+            <!-- Your image here -->
   <!--           <img src="static/images/carousel3.jpg" alt="MY ALT TEXT" /> -->
   <!--           <h2 class="subtitle has-text-centered"> -->
   <!--             Third image description. -->
   <!--           </h2> -->
   <!--         </div> -->
   <!--         <div class="item"> -->
-  <!--           <!-- Your image here --> -->
+            <!-- Your image here -->
   <!--           <img src="static/images/carousel4.jpg" alt="MY ALT TEXT" /> -->
   <!--           <h2 class="subtitle has-text-centered"> -->
   <!--             Fourth image description. -->
@@ -201,22 +197,22 @@
   <!--     </div> -->
   <!--   </div> -->
   <!-- </section> -->
-  <!-- <!-- End image carousel --> -->
+  <!-- End image carousel -->
 
 
 
 
-  <!-- <!-- Youtube video --> -->
+  <!-- Youtube video -->
   <!-- <section class="hero is-small is-light"> -->
   <!--   <div class="hero-body"> -->
   <!--     <div class="container"> -->
-  <!--       <!-- Paper video. --> -->
+        <!-- Paper video. -->
   <!--       <h2 class="title is-3">Video Presentation</h2> -->
   <!--       <div class="columns is-centered has-text-centered"> -->
   <!--         <div class="column is-four-fifths"> -->
 
   <!--           <div class="publication-video"> -->
-  <!--             <!-- Youtube embed code here --> -->
+              <!-- Youtube embed code here -->
   <!--             <iframe src="https://www.youtube.com/embed/JkaxUblCGz0" frameborder="0" allow="autoplay; encrypted-media" -->
   <!--               allowfullscreen></iframe> -->
   <!--           </div> -->
@@ -225,10 +221,10 @@
   <!--     </div> -->
   <!--   </div> -->
   <!-- </section> -->
-  <!-- <!-- End youtube video --> -->
+  <!-- End youtube video -->
 
 
-  <!-- <!-- Video carousel --> -->
+  <!-- Video carousel -->
   <!-- <section class="hero is-small"> -->
   <!--   <div class="hero-body"> -->
   <!--     <div class="container"> -->
@@ -236,19 +232,19 @@
   <!--       <div id="results-carousel" class="carousel results-carousel"> -->
   <!--         <div class="item item-video1"> -->
   <!--           <video poster="" id="video1" autoplay controls muted loop height="100%"> -->
-  <!--             <!-- Your video file here --> -->
+              <!-- Your video file here -->
   <!--             <source src="static/videos/carousel1.mp4" type="video/mp4"> -->
   <!--           </video> -->
   <!--         </div> -->
   <!--         <div class="item item-video2"> -->
   <!--           <video poster="" id="video2" autoplay controls muted loop height="100%"> -->
-  <!--             <!-- Your video file here --> -->
+              <!-- Your video file here -->
   <!--             <source src="static/videos/carousel2.mp4" type="video/mp4"> -->
   <!--           </video> -->
   <!--         </div> -->
   <!--         <div class="item item-video3"> -->
   <!--           <video poster="" id="video3" autoplay controls muted loop height="100%">\ -->
-  <!--             <!-- Your video file here --> -->
+              <!-- Your video file here -->
   <!--             <source src="static/videos/carousel3.mp4" type="video/mp4"> -->
   <!--           </video> -->
   <!--         </div> -->
@@ -256,14 +252,14 @@
   <!--     </div> -->
   <!--   </div> -->
   <!-- </section> -->
-  <!-- <!-- End video carousel --> -->
+  <!-- End video carousel -->
 
 
 
 
 
 
-  <!-- <!-- Paper poster --> -->
+  <!-- Paper poster -->
   <!-- <section class="hero is-small is-light"> -->
   <!--   <div class="hero-body"> -->
   <!--     <div class="container"> -->
@@ -275,17 +271,26 @@
   <!--     </div> -->
   <!--   </div> -->
   <!-- </section> -->
-  <!-- <!--End paper poster --> -->
+  <!--End paper poster -->
 
 
-  <!-- <!--BibTex citation --> -->
-  <!-- <section class="section" id="BibTeX"> -->
-  <!--   <div class="container is-max-desktop content"> -->
-  <!--     <h2 class="title">BibTeX</h2> -->
-  <!--     <pre><code>BibTex Code Here</code></pre> -->
-  <!--   </div> -->
-  <!-- </section> -->
-  <!-- <!--End BibTex citation --> -->
+  <!--BibTex citation -->
+  <section class="section" id="BibTeX">
+    <div class="container is-max-desktop content">
+      <h2 class="title">BibTeX</h2>
+      <pre><code>@misc{https://doi.org/10.48550/arxiv.2303.03879,
+  doi = {10.48550/ARXIV.2303.03879},
+  url = {https://arxiv.org/abs/2303.03879},
+  author = {Gossard, Thomas and Tebbe, Jonas and Ziegler, Andreas and Zell, Andreas},
+  keywords = {Computer Vision and Pattern Recognition (cs.CV), Robotics (cs.RO), FOS: Computer and information sciences, FOS: Computer and information sciences},
+  title = {SpinDOE: A ball spin estimation method for table tennis robot},
+  publisher = {arXiv},
+  year = {2023},
+  copyright = {Creative Commons Attribution Non Commercial Share Alike 4.0 International}
+}</code></pre>
+    </div>
+  </section>
+  <!--End BibTex citation -->
 
 
   <footer class="footer">
@@ -297,7 +302,6 @@
             <p>
               This page was built using the <a href="https://github.com/eliahuhorwitz/Academic-project-page-template"
                 target="_blank">Academic Project Page Template</a>.
-              You are free to borrow the of this website, we just ask that you link back to this page in the footer.
               <br> This website is licensed under a <a rel="license"
                 href="http://creativecommons.org/licenses/by-sa/4.0/" target="_blank">Creative
                 Commons Attribution-ShareAlike 4.0 International License</a>.
