@@ -10,7 +10,7 @@ from scipy.spatial.transform import Rotation as R
 
 
 class SpinRegressor:
-    def __init__(self, n=4, k=10, t=5e-2, d=3) -> None:
+    def __init__(self, n=3, k=10, t=5e-2, d=3) -> None:
 
         # RANSAC parameters
         self.n = n  # Initial sample size for regression

@@ -17,7 +17,7 @@ from data_augmentation import MotionBlur, RandomFlip, CustomCompose
 
 data_aug_transform = CustomCompose(
     [
-        # MotionBlur(),
+        MotionBlur(),
         RandomFlip(),
         # T.ColorJitter(brightness=0.05, contrast=0.05, saturation=0.05, hue=0.05), # TODO: Add color jitter for two elements
     ]
@@ -47,6 +47,7 @@ class DotDataModule(pl.LightningDataModule):
     def setup(self, stage: Optional[str] = None):
         # Get all the index files
         self.index_paths = list(self.data_dir.glob("**/index.csv"))
+        # print(self.index_paths)
         # Seperate the different datasets into train, val, test according to their rotation axis defined by their dot
         rot_axis = []
         for path in self.index_paths:
@@ -110,7 +111,8 @@ class DotDataModule(pl.LightningDataModule):
 
 if __name__ == "__main__":
     data_dir = Path(
-        "/home/gossard/Code/tt_ws/src/tt_tracking_system/tt_spindetection/spin_motor_dots_andro_ball/"
+        "/home/gossard/Code/tt_ws/src/tt_tracking_system/tt_spindetection/"
+        # "/home/gossard/Code/tt_ws/src/tt_tracking_system/tt_spindetection/spin_motor_dots_andro_ball/"
     )
     data_module = DotDataModule(data_dir)
     data_module.setup()

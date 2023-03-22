@@ -1,12 +1,28 @@
-# SpinDOE
-This repository contains the code for SpinDOE, a table tennis ball spin estimation algorithm. The algorithm is described in the paper.
+# SpinDOE: A ball spin estimation method for table tennis robot
 
-There is both a C++ and python implementation of it for whether you want to play around with it or use it for real time applications.
+![ball_sequence](./img/ball_sequence.png)
 
-## Python
+This repository contains the code for SpinDOE, a table tennis ball spin estimation algorithm. The algorithm is described in the paper [Gossard et al.](https://arxiv.org/abs/2303.03879).
 
+## Use
+Images are to be saved with their timestamps in microseconds as their name: "897987340.png"
+
+```python
+python spindoe.py
 ```
-python spindoe.py file
-```
 
-The name of the images need to comply with the following convention: "10s879.png"
+
+
+## Citation
+If you find this project useful for your research, please use the following BibTeX entry.
+
+```bibtex
+@misc{gossard2023spindoe,
+      title={SpinDOE: A ball spin estimation method for table tennis robot}, 
+      author={Thomas Gossard and Jonas Tebbe and Andreas Ziegler and Andreas Zell},
+      year={2023},
+      eprint={2303.03879},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV}
+}
+```

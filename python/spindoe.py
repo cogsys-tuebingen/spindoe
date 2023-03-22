@@ -21,15 +21,21 @@ class SpinDOE:
     def estimate(self, t, imgs):
         rots = []
         heatmaps = []
-        for img in imgs:
+        filt_t = []
+        filt_rots = []
+        for i in range(len(imgs)):
             # img = cv2.cvtColor(imgs[i], cv2.COLOR_BGR2GRAY)
-            rot, mask, heatmap = self.doe.estimate_single(img)
-            plt.imshow(heatmap)
-            plt.show()
+            rot, mask, heatmap = self.doe.estimate_single(imgs[i])
+            # plt.imshow(heatmap)
+            # plt.show()
+            if rot is not None:
+                filt_rots.append(rot)
+                filt_t.append(t[i])
             rots.append(rot)
             heatmaps.append(heatmap)
 
-        spin, valid_idx = self.spin_regressor.RANSAC_regress(t, rots)
+        filt_t = np.array(filt_t)
+        spin, valid_idx = self.spin_regressor.RANSAC_regress(filt_t, filt_rots)
 
         return spin, rots, heatmaps, valid_idx
 
@@ -39,7 +45,10 @@ class SpinDOE:
         aug_imgs = []
         for i in range(n):
             img = cv2.cvtColor(imgs[i], cv2.COLOR_BGR2GRAY)
-            aug_img = self.doe.reproject_dots(rots[i], img)
+            if rots[i] is None:
+                aug_img = img
+            else:
+                aug_img = self.doe.reproject_dots(rots[i], img)
             # fig, axs = plt.subplots(3)
             # axs[0].imshow(heatmap)
             # axs[1].imshow(mask)
@@ -72,11 +81,11 @@ class SpinDOE:
 if __name__ == "__main__":
 
     dot_detector_model = Path(
-        "/home/gossard/Git/spindoe/python/lightning_logs/version_31/checkpoints/epoch=5-step=1320.ckpt"
+        "/home/gossard/Git/spindoe/python/lightning_logs/version_41/checkpoints/epoch=5-step=1320.ckpt"
     )
     # Get the images from the test directory
     # img_dir = Path.cwd().parent / "data" / "test"
-    img_dir = Path("/home/gossard/Nextcloud/tabletennis/trajectory_dataset/2")
+    img_dir = Path("/home/gossard/Nextcloud/tabletennis/trajectory_dataset/9")
     img_paths = sorted(list(img_dir.glob("*.png")))
     imgs = []
     times = []
@@ -103,8 +112,7 @@ if __name__ == "__main__":
     # args = parser.parse_args()
     spindoe = SpinDOE(dot_detector_model)
     t1 = time.time()
-    for i in range(10):
-        spin, rots, heatmaps, valid_idx = spindoe.estimate(times, imgs)
+    spin, rots, heatmaps, valid_idx = spindoe.estimate(times, imgs)
     print("Runtime: {}".format(time.time() - t1))
     # print(rots)
     spindoe.debug(imgs, rots, heatmaps, valid_idx)

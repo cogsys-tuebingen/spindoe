@@ -103,6 +103,7 @@ class DOE:
 
         # If the "reprojection error" is too big, doe is assumed to have failed
         if rmse > self.rmse_thres:
+            print("RMSE too high")
             return None, mask, heatmap
 
         return rot, mask, heatmap
