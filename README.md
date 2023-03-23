@@ -11,6 +11,12 @@ Images are to be saved with their timestamps in microseconds as their name: "897
 python spindoe.py
 ```
 
+## Ball stencil
+To accurately, easily and in a repeatable manner draw the dot on the table tennis balls, a 3D printed stencil is available in the cad/ directory. 
+A screw is used for the hinge.
+
+![stencil](./img/stencil.png)
+
 
 
 ## Citation
