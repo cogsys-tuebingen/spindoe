@@ -13,9 +13,9 @@ import matplotlib.pyplot as plt
 
 def read_ball_image(img_path, size=60, RGB=True):
     img = read_image(str(img_path))
-    img = T.Resize((size, size))(img)
+    img = T.Resize((size, size), antialias=True)(img)
     if not RGB:
-        img =T.Grayscale()(img)
+        img = T.Grayscale()(img)
     # Convert image to range [0,1] and floats
     img = img.float() / 255.0
     return img
@@ -52,7 +52,7 @@ class DotDataset(Dataset):
         )
         self.std_dot = std_dot
         self.size = size
-        self.resize = T.Resize((self.size, self.size))
+        self.resize = T.Resize((self.size, self.size), antialias=True)
         self.RGB = RGB
         self.transform = transform
 
@@ -62,7 +62,7 @@ class DotDataset(Dataset):
     def __getitem__(self, idx):
         img_path = self.index[0][idx]
         quat = self.index.loc[idx, 1:4].to_numpy(dtype=np.float64)
-        img = read_ball_image(img_path, size=self.size,RGB=self.RGB)
+        img = read_ball_image(img_path, size=self.size, RGB=self.RGB)
         height, width = img.shape[1:]
 
         # Generate the heatmap
