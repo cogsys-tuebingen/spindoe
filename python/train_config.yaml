@@ -12,7 +12,14 @@ data:
   data_aug: False
 trainer:
   accelerator: gpu
+  default_root_dir: .
+  max_epochs: 50
   callbacks:
     - class_path: pytorch_lightning.callbacks.EarlyStopping
       init_args:
         monitor: val_loss
+  logger:
+    class_path: pytorch_lightning.loggers.WandbLogger
+    init_args:
+      save_dir: .
+      project: dot_detection2

@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torchvision
+import wandb
 from torchvision import transforms as T
 import pytorch_lightning as pl
 from loss import FocalLoss
@@ -103,22 +104,22 @@ class DotDetector(pl.LightningModule):
         self.log("train_loss", float(loss), on_step=True, on_epoch=True)
         return loss
 
-    # def render(self, x, y, y_hat, n=3):
-    #     if self.input == "grayscale":
-    #         z = torch.vstack((x[:n], y[:n], y_hat[:n]))
-    #     elif self.input == "rgb":
-    #         z = torch.vstack(
-    #             (x[:n], y[:n].repeat(1, 3, 1, 1), y_hat[:n].repeat(1, 3, 1, 1))
-    #         )
-    #     return torchvision.utils.make_grid(z, nrow=n)
+    def render(self, x, y, y_hat, n=3):
+        if self.input == "grayscale":
+            z = torch.vstack((x[:n], y[:n], y_hat[:n]))
+        elif self.input == "rgb":
+            z = torch.vstack(
+                (x[:n], y[:n].repeat(1, 3, 1, 1), y_hat[:n].repeat(1, 3, 1, 1))
+            )
+        return torchvision.utils.make_grid(z, nrow=n)
 
-    # def on_train_epoch_end(self):
-    #     x, y, rots = self.train_batch
-    #     y_hat = self(x)
-    #     img = self.render(x, y, y_hat, 2)
-    #     self.trainer.logger.experiment.log(
-    #         {"train_img": wandb.Image(img), "epoch": self.current_epoch}
-    #     )
+    def on_train_epoch_end(self):
+        x, y, rots = self.train_batch
+        y_hat = self(x)
+        img = self.render(x, y, y_hat, 4)
+        self.logger.experiment.log(
+            {"train_img": wandb.Image(img), "epoch": self.current_epoch}
+        )
 
     def validation_step(self, batch, batch_idx):
         self.val_batch = batch
@@ -127,27 +128,21 @@ class DotDetector(pl.LightningModule):
         val_loss = self.loss_fn(y_hat, y)
         self.log("val_loss", float(val_loss))
 
-    # def on_validation_epoch_end(self):
-    #     x, y, rots = self.val_batch
-    #     y_hat = self(x)
-    #     img = self.render(x, y, y_hat)
-    #     self.trainer.logger.experiment.log(
-    #         {"val_img": wandb.Image(img), "epoch": self.current_epoch}
-    #     )
-    #     acc = self.accuracy(y_hat, rots)
-    #     self.log("accuracy", np.mean(acc))
-    #     self.log("not_enough_points", np.sum(np.where(acc == np.pi)))
-    #     self.log("median_acc", float(np.median(acc)))
-    #     hist = wandb.Histogram(acc)
-    #     wandb.log({"acc_dist": hist})
+    def on_validation_epoch_end(self):
+        x, y, rots = self.val_batch
+        y_hat = self(x)
+        img = self.render(x, y, y_hat, 4)
+        self.trainer.logger.experiment.log(
+            {"val_img": wandb.Image(img), "epoch": self.current_epoch}
+        )
 
     def test_step(self, batch, batch_idx):
         x, y, _ = batch
         y_hat = self(x)
-        # img = self.render(x, y, y_hat)
-        # self.trainer.logger.experiment.log(
-        #     {"test_img": wandb.Image(img), "epoch": self.current_epoch}
-        # )
+        img = self.render(x, y, y_hat)
+        self.trainer.logger.experiment.log(
+            {"test_img": wandb.Image(img), "epoch": self.current_epoch}
+        )
         test_loss = self.loss_fn(y_hat, y)
         self.log("test_loss", test_loss)
 
@@ -155,44 +150,3 @@ class DotDetector(pl.LightningModule):
     #     x, y, rots = batch
     #     pred = self(x)
     #     return pred
-
-    # def accuracy(self, y_hat, rots):
-    #     delta = []
-    #     for i in range(rots.shape[0]):
-    #         rot_hat = self.estimate_rot(y_hat[i])
-    #         if rot_hat is None:
-    #             delta.append(np.pi)
-    #             continue
-    #         rot = R.from_quat(rots[i].cpu().numpy())
-    #         delta.append(np.abs((rot_hat * rot.inv()).magnitude()))
-    #     delta = np.array(delta)
-    #     return delta
-
-    # def dice_metric(self, inputs, target):
-    #     intersection = 2.0 * (target * inputs).sum()
-    #     union = target.sum() + inputs.sum()
-    #     if target.sum() == 0 and inputs.sum() == 0:
-    #         return 1.0
-    #     return intersection / union
-
-    # def estimate_rot(self, heatmap):
-    #     heatmap = T.ToPILImage()(heatmap)
-    #     heatmap = np.array(heatmap)
-    #     rot, mask, heatmap = sp.heatmap2rot(heatmap, self.geohasher)
-    #     return rot
-
-    # def get_dots(self, y_hat):
-    #     coord = []
-    #     for el in y_hat:
-    #         img = el.permute(1, 2, 0).clone().detach().squeeze().cpu().numpy()
-    #         peaks = peak_local_max(img)
-    #         coord.append(np.argwhere(peaks == True))
-    #     return coord
-
-    # def get_gt_dots(self, y):
-    #     coords = []
-    #     for el in y:
-    #         coord = torch.argwhere(el == 1).clone().detach().cpu().numpy()
-    #         coord = np.delete(coord, 0, axis=1)
-    #         coords.append(coord)
-    #     return coords

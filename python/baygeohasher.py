@@ -17,8 +17,8 @@ class BayGeoHasher:
     def __init__(
         self,
         threshold: float = -5e4,
-        k_neighbour: int = 6,
-        upper_score_perc: int = 60,
+        k_neighbour: int = 20,
+        upper_score_perc: int = 50,
         projection_ll_scale: float = 0.03,
         min_feature_dist: float = 3,  # HACK: should be 1.8
         kappa: float = 5e2,
@@ -171,7 +171,6 @@ class BayGeoHasher:
             p = self.get_log_ll(
                 basis, obs_points[i + 2], self.hash_table[neighbour_idx]
             )
-            # print(p)
             valid = p > self.threshold
             # print(valid)
             for j in range(self.k_neighbour):
@@ -187,7 +186,8 @@ class BayGeoHasher:
         valid_score = score[score >= score_lim]
         # print(valid_idx)
         # print(valid_score)
-        best_idx = np.argmax(valid_score)
+        best_idx = valid_idx[np.argmax(valid_score)]
+        # print(best_idx)
         # print(len(obs_points))
         # print(score_lim)
         # print(check_models)
@@ -206,6 +206,10 @@ class BayGeoHasher:
         chosen_rot = rots[np.argmin(errors)]
         chosen_error = np.min(errors)
         return chosen_base, chosen_rot, chosen_error
+
+        ## Without verification phase
+        # rot, rmse = self.verification(best_idx[0], best_idx[1], obs_points)
+        # return best_idx, rot, rmse
 
     def verification(self, i, j, obs_points):
         """

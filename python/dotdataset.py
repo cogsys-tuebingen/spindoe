@@ -3,6 +3,7 @@ Dataset class for the dotted ball images
 """
 
 import torch
+import cv2
 from torch.utils.data import Dataset
 import pandas as pd
 from torchvision import transforms as T
@@ -13,7 +14,6 @@ import matplotlib.pyplot as plt
 
 def read_ball_image(img_path, size=60, RGB=True):
     img = read_image(str(img_path))
-    img = T.Resize((size, size), antialias=True)(img)
     if not RGB:
         img = T.Grayscale()(img)
     # Convert image to range [0,1] and floats
@@ -63,11 +63,14 @@ class DotDataset(Dataset):
         img_path = self.index[0][idx]
         quat = self.index.loc[idx, 1:4].to_numpy(dtype=np.float64)
         img = read_ball_image(img_path, size=self.size, RGB=self.RGB)
-        height, width = img.shape[1:]
+        orig_h, orig_w = img.shape[1:]
+        img = T.Resize((self.size, self.size), antialias=True)(img)
 
         # Generate the heatmap
         dots = self.get_dots(idx)
-        heatmap = self.gen_heatmap(dots, height, width)
+        dots[:, 0] = self.size / orig_h * dots[:, 0]
+        dots[:, 1] = self.size / orig_w * dots[:, 1]
+        heatmap = self.gen_heatmap(dots, self.size, self.size)
         heatmap = heatmap[None, ...]
 
         if self.transform:
@@ -115,6 +118,19 @@ class DotDataset(Dataset):
             )
         )
 
+    def get_img_w_dots(self, idx):
+        img, heatmap, _ = self.__getitem__(idx)
+        img = np.array(T.ToPILImage()(img))
+        heatmap = np.array(T.ToPILImage()(heatmap))
+        for dot in dots:
+            x = int(dot[0])
+            y = int(dot[1])
+            img = cv2.circle(img, (x, y), radius=1, color=(255, 255, 255), thickness=-1)
+            heatmap = cv2.circle(
+                heatmap, (x, y), radius=5, color=(255, 0, 0), thickness=1
+            )
+        return img, heatmap
+
     def gen_heatmap(self, dots, height, width):
         """Generates the heatmap for the dots given
 
@@ -127,14 +143,12 @@ class DotDataset(Dataset):
             heatmap (np.array): Normalized heatmap of dot positions
         """
         heatmap = torch.zeros((self.size, self.size), dtype=torch.float)
-        sx = self.size / width
-        sy = self.size / height
         for dot in dots:
             x = torch.arange(self.size)
             y = torch.arange(self.size)
             yy, xx = torch.meshgrid(y, x, indexing="ij")
             single_dot_heatmap = self.gaussian_2d(
-                yy, xx, sy * dot[1], sx * dot[0], self.std_dot, self.std_dot
+                yy, xx, dot[1], dot[0], self.std_dot, self.std_dot
             )
             single_dot_heatmap = single_dot_heatmap / torch.max(
                 single_dot_heatmap
@@ -168,9 +182,7 @@ if __name__ == "__main__":
     idxs = np.random.randint(0, len_data, 4)
     for i in range(2):
         for j in range(2):
-            img, heatmap, _ = dataset[idxs[i + j]]
-            img = T.ToPILImage()(img)
-            heatmap = T.ToPILImage()(heatmap)
+            img, heatmap = dataset.get_img_w_dots(idxs[i + j])
             axs[i, 2 * j].imshow(img)
             axs[i, 2 * j + 1].imshow(heatmap)
     plt.show()

@@ -4,6 +4,7 @@ Dotted-ball Orientation Estimator (DOE)
 
 from dotdetector import DotDetector
 import time
+import shutil
 from pathlib import Path
 from baygeohasher import BayGeoHasher
 import matplotlib.pyplot as plt
@@ -17,16 +18,13 @@ import cv2
 import threading
 from queue import Queue
 
-NUM_THREADS = 10
-q = Queue()
-
 
 class DOE:
     def __init__(self, dot_detector_model_path, use_gpu=False) -> None:
         self.use_gpu = use_gpu
         self.thresh_ratio = 0.7
         self.size = 60  # Size of the image input
-        self.rmse_thres = 100  # rmse theshold for estimated rotation to be accepted
+        self.rmse_thres = 0.5  # rmse theshold for estimated rotation to be accepted
 
         # Dots' Color for GUI
         self.dot_color = (255, 0, 0)
@@ -46,7 +44,7 @@ class DOE:
             self.dot_detector.eval()
 
     def init_geohasher(self):
-        self.ref_pattern = read_pattern("../data/ref_pattern.csv")
+        self.ref_pattern = read_pattern("../cad/ref_pattern.csv")
         self.geohasher = BayGeoHasher()
         self.geohasher.gen_hash_table(self.ref_pattern)
 
@@ -81,6 +79,17 @@ class DOE:
         # print("number of keypoints detected: {}".format(len(keypoints)))
         return mask, keypoints
 
+    def filter_points(self, points):
+        if len(points) > 5:
+            highest = np.argsort(points[:, 2])
+            f_points = points[highest[-5:]]
+            print(f_points)
+            print(points)
+            print()
+        else:
+            f_points = points
+        return f_points
+
     def estimate_single(self, img):
         tensor = self.process_input(img)
         # print(tensor)
@@ -93,20 +102,24 @@ class DOE:
         # plt.imshow(heatmap)
         # plt.show()
         mask, keypoints = self.extract_dots(heatmap)
+
         # DOE cannot work with less than 3 points
         if len(keypoints) < 3:
-            return None, mask, heatmap
+            return None, heatmap, mask, keypoints
 
         dots = self.kps2pt3d(keypoints)
 
+        # dot = self.filter_points(dots)
+
         idx, rot, rmse = self.geohasher.identify(dots)
+        # print(rmse)
 
         # If the "reprojection error" is too big, doe is assumed to have failed
         if rmse > self.rmse_thres:
-            print("RMSE too high")
-            return None, mask, heatmap
+            # print("RMSE too high")
+            return None, heatmap, mask, keypoints
 
-        return rot, mask, heatmap
+        return rot, heatmap, mask, keypoints
 
     def estimate_multi(self, imgs):
         concat_tensor = []
@@ -142,7 +155,7 @@ class DOE:
                 rots.append(rot)
             masks.append(mask)
 
-        return rots, masks, heatmaps
+        return rots, heatmaps, masks, None
 
     def multi_treaded_estimate(self, imgs):
         concat_tensor = []
@@ -215,7 +228,8 @@ class DOE:
             raise TypeError("DOE input type not supported")
         if self.use_gpu:
             tensor = tensor.cuda(device=0)
-        tensor = T.Resize((self.size, self.size))(tensor)
+        tensor = T.Resize((self.size, self.size), antialias=True)(tensor)
+        # print(tensor)
         return tensor
 
     def reproject_dots(self, rot, img, color=None):
@@ -244,49 +258,87 @@ class DOE:
             res_img = cv2.circle(res_img, (x, y), radius=1, color=color, thickness=-1)
         return res_img
 
+    def debug(self, img):
+        rot, heatmap, mask, keypoints = self.estimate_single(img)
+        heatmap = np.uint8(255 * heatmap)
+        heatmap = cv2.cvtColor(heatmap, cv2.COLOR_GRAY2RGB)
+        # img = cv2.drawKeypoints(
+        #     img,
+        #     keypoints,
+        #     0,
+        #     (0, 0, 255),
+        #     flags=cv2.DRAW_MATCHES_FLAGS_NOT_DRAW_SINGLE_POINTS,
+        # )
+        heatmap = cv2.drawKeypoints(
+            heatmap,
+            keypoints,
+            0,
+            (0, 0, 255),
+            flags=cv2.DRAW_MATCHES_FLAGS_NOT_DRAW_SINGLE_POINTS,
+        )
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        if rot is not None:
+            aug_img = doe.reproject_dots(rot, img)
+        else:
+            aug_img = img
+        return rot, aug_img, heatmap
+
 
 if __name__ == "__main__":
     use_gpu = True
     dot_detector_model = Path(
-        "/home/gossard/Git/spindoe/python/lightning_logs/version_27/checkpoints/epoch=4-step=1100.ckpt"
+        "/home/gossard/Git/spindoe/python/dot_detection2/zviyw74y/checkpoints/epoch=4-step=1100.ckpt"
     )
     # Test the doe
     doe = DOE(dot_detector_model, use_gpu)
     # Get the images from the test directory
-    img_dir = Path.cwd().parent / "data" / "test"
-    img_paths = list(img_dir.glob("*.png"))
+    # img_dir = Path.cwd().parent / "data" / "test"
+    # img_paths = list(img_dir.glob("*.png"))
+    img_dir = Path("/home/gossard/Nextcloud/tabletennis/trajectory_dataset/")
+    test_dir = Path("/home/gossard/Nextcloud/tabletennis/doe_test_imgs")
+    test_dir2 = Path(
+        "/home/gossard/Code/tt_ws/src/tt_tracking_system/tt_spindetection/spin_motor_dots_andro_ball/ball_dot_12_up_to"
+    )
+    img_paths = list(img_dir.glob("**/*.png"))
 
     # Process
     # rdm_idx = np.random.choice(np.arange(len(img_paths)), 6, replace=False)
-    rdm_idx = np.arange(10)
+    rdm_idx = np.arange(6)
     aug_imgs = []
     heatmaps = []
     t = []
-    for i in range(10):
-        imgs = []
-        for idx in rdm_idx:
-            img = cv2.imread(str(img_paths[idx]))
-            imgs.append(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY))
-        rots, masks, heatmaps = doe.estimate_multi(imgs)
-    for i in range(1000):
-        imgs = []
-        for idx in rdm_idx:
-            img = cv2.imread(str(img_paths[idx]))
-            imgs.append(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY))
-        t1 = time.time()
-        rots, masks, heatmaps = doe.estimate_multi(imgs)
-        t.append(time.time() - t1)
-        # rot, mask, heatmap = doe.estimate(img)
-        # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        # aug_img = doe.reproject_dots(rot, img)
+    imgs = []
+    i = 0
+    for idx in rdm_idx:
+        # img = cv2.imread(str(img_paths[idx]))
+        img = cv2.imread(str(img_paths[idx]))
+        img = img[11:-11, 11:-11]
+        # plt.imshow(img)
+        # plt.show()
+        imgs.append(img)
+        # imgs.append(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY))
+        # rots, masks, heatmaps = doe.estimate_multi(imgs)
+        # for i in range(1000):
+        #     imgs = []
+        #     for idx in rdm_idx:
+        #         img = cv2.imread(str(img_paths[idx]))
+        #         # imgs.append(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY))
+        #     t1 = time.time()
+        #     rots, masks, heatmaps = doe.estimate_multi(imgs)
+        # t.append(time.time() - t1)
+        rot, aug_img, heatmap = doe.debug(img)
         # fig, axs = plt.subplots(3)
         # axs[0].imshow(heatmap)
         # axs[1].imshow(mask)
         # axs[2].imshow(aug_img)
         # plt.show()
+        # key = input()
+        # if key == "y":
+        #     shutil.copyfile(str(img_paths[idx]), test_dir / "{:03d}.png".format(i))
+        #     i += 1
         # print(rot)
-        # heatmaps.append(heatmap)
-        # aug_imgs.append(aug_img)
+        heatmaps.append(heatmap)
+        aug_imgs.append(aug_img)
 
     t = np.array(t)
     print(np.mean(t))

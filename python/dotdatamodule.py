@@ -19,7 +19,7 @@ data_aug_transform = CustomCompose(
     [
         MotionBlur(),
         RandomFlip(),
-        # T.ColorJitter(brightness=0.05, contrast=0.05, saturation=0.05, hue=0.05), # TODO: Add color jitter for two elements
+        T.ColorJitter(brightness=0.05, contrast=0.05, saturation=0.05, hue=0.05),
     ]
 )
 

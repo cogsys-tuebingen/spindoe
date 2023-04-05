@@ -5,12 +5,14 @@ Then, the angle between the successive orientations are calculated and the spin 
 """
 
 import numpy as np
+import matplotlib.pyplot as plt
 import time
 from scipy.spatial.transform import Rotation as R
+from sklearn.linear_model import LinearRegression
 
 
 class SpinRegressor:
-    def __init__(self, n=3, k=10, t=5e-2, d=3) -> None:
+    def __init__(self, n=3, k=20, t=4e-1, d=2) -> None:
 
         # RANSAC parameters
         self.n = n  # Initial sample size for regression
@@ -92,7 +94,7 @@ class SpinRegressor:
         # Necessary to unwrap the angles for the linear regression
         phis = np.unwrap(phis)
         spin_norm = self.spin_norm_reg(phis, t)
-        print(spin_norm)
+        # print(spin_norm)
         spin = -axis * spin_norm[1]  # HACK: minus sign had to be added
 
         first_rot = self.quat2rot(qtls[0])
@@ -106,8 +108,6 @@ class SpinRegressor:
             y[i] = self.rot2quat(rots[i])
         axis, u, valid_idx, error = self.get_RANSAC_spin_axis(y)
 
-        print()
-        print(valid_idx)
         if axis is None:
             return None, None
         # Get the useful rotations
@@ -126,14 +126,82 @@ class SpinRegressor:
             # print(q)
             phis[i] = self.get_phi(qtls[i], u1, u2)
 
+        print(phis)
         # Necessary to unwrap the angles for the linear regression
-        phis = np.unwrap(phis)
+        # phis = np.unwrap(phis)
+        phis, _ = self.unwrap(t_sel, phis)
+        print(phis)
         spin_norm = self.spin_norm_reg(phis, t_sel)
         # print(spin_norm)
         spin = -axis * spin_norm[1]  # HACK: minus sign had to be added
 
         first_rot = self.quat2rot(qtls[0])
+        print(len(valid_idx))
         return spin, valid_idx
+
+    def unwrap(self, t, phis, opposite_sign=False):
+        plt.figure()
+        plt.scatter(t, phis, marker="x", label="0")
+        # print()
+        # print(t)
+        print(phis)
+        dt = np.diff(t)
+        diff_phis = np.diff(phis)
+        delta = diff_phis / dt
+        # print(delta)
+        # print(np.median(diff_phis))
+        sign = 1 if np.median(diff_phis) > 0 else -1
+        if opposite_sign:
+            sign = -sign
+        # print(sign)
+        for i in range(1, len(phis)):
+            # Case: increasing phis
+            if sign > 0:
+                # print("Up")
+                while (phis[i] - phis[i - 1]) < 0:
+                    phis[i:] = phis[i:] + 2 * np.pi
+            # Case: decreasing phis
+            elif sign < 0:
+                # print("Down")
+                while (phis[i] - phis[i - 1]) > 0:
+                    phis[i:] = phis[i:] - 2 * np.pi
+        plt.scatter(t, phis, marker=">", label="1")
+        diff_phis = np.diff(phis)
+        delta = diff_phis / dt
+        # print(delta)
+        median_delta = np.median(delta)
+        # print(median_delta)
+        # HACK: seems to work with this ratio
+        ratio = 0.5 + np.exp(-sign * median_delta / 80)
+        for i in range(1, len(phis)):
+            # print(i)
+            if sign * delta[i - 1] < sign * (1 - ratio) * median_delta:
+                # print("Up")
+                # print(delta[i - 1])
+                # print(0.7 * median_delta)
+                phis[i:] = phis[i:] + sign * 2 * np.pi
+            elif sign * delta[i - 1] > sign * (1 + ratio) * median_delta:
+                # print("Down")
+                # print(delta[i - 1])
+                # print(1.3 * median_delta)
+                phis[i:] = phis[i:] - sign * 2 * np.pi
+        plt.scatter(t, phis, label="2", alpha=0.5)
+        plt.legend()
+        plt.show()
+        reg = LinearRegression()
+        reg.fit(t.reshape(-1, 1), phis.reshape((-1, 1)))
+        score = reg.score(t.reshape(-1, 1), phis.reshape((-1, 1)))
+        # print(reg.coef_)
+        print(score)
+        # if score < 0.99 and opposite_sign == False:
+        #     # print("Opposite sign")
+        #     prev_phis = phis
+        #     prev_score = score
+        #     phis, score = self.unwrap(t, phis, opposite_sign=True)
+        #     if prev_score > score:
+        #         return prev_phis, prev_score
+        print(phis)
+        return phis, score
 
     def get_RANSAC_spin_axis(self, y):
         n_rots = len(y)
@@ -177,6 +245,7 @@ class SpinRegressor:
                     best_err = tot_error
                     best_u = (u1, u2)
             iter += 1
+        best_idxs = np.array(best_idxs)
         return best_axis, best_u, best_idxs, best_err
 
     def rot2quat(self, rot):

@@ -19,7 +19,7 @@ if __name__ == "__main__":
     img_paths = list(img_dir.glob("*.png"))
 
     dot_detector_model = Path(
-        "/home/gossard/Git/spindoe/python/lightning_logs/version_41/checkpoints/epoch=5-step=1320.ckpt"
+        "/home/gossard/Git/spindoe/python/dot_detection2/g3b8aji9/checkpoints/epoch=5-step=1320.ckpt"
     )
     dot_detector = DotDetector.load_from_checkpoint(str(dot_detector_model))
     # dot_detector.eval().cuda(device=0)
