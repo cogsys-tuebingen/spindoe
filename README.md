@@ -22,7 +22,7 @@ All the information and CAD models to reproduce the stencil are available [here]
 ## Trajectory dataset
 Using SpinDOE, we generated a dataset of table tennis ball trajectories with an accurate spin measurement.
 
-The dataset is available [here](./data/trajectories/README.md).
+The dataset is available [here](./data/trajectories).
 
 ![stencil](./img/trajectories.png | width=600 | height=300)
 
