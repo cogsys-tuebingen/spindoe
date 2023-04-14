@@ -15,7 +15,7 @@ python spindoe.py
 To accurately, easily and in a repeatable manner draw the dot on the table tennis balls, a 3D printed stencil is available in the cad/ directory. 
 A screw is used for the hinge.
 
-All the information and CAD models to reproduce the stencil are available [here](./cad/README.md). 
+All the information and CAD models to reproduce the stencil are available [here](./cad). 
 
 ![stencil](./img/stencil.png)
 
@@ -24,8 +24,7 @@ Using SpinDOE, we generated a dataset of table tennis ball trajectories with an 
 
 The dataset is available [here](./data/trajectories).
 
-![stencil](./img/trajectories.png | width=600 | height=300)
-
+<img src="./img/trajectories.png"  width="600" height="300">
 ## Citation
 If you find this project useful for your research, please use the following BibTeX entry.
 
