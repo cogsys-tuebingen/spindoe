@@ -1,6 +1,6 @@
 # From CenterNet: https://github.com/xingyizhou/CenterNet/blob/2b7692c377c6686fb35e473dac2de6105eed62c6/src/lib/models/losses.py
-import torch.nn as nn
 import torch
+import torch.nn as nn
 
 
 def _neg_loss(pred, gt):
@@ -18,9 +18,13 @@ def _neg_loss(pred, gt):
     neg_weights = torch.pow(1 - gt, 4)
 
     loss = 0
+    gamma = 1
+    # alpha = 0.75
 
-    pos_loss = torch.log(pred + eps) * torch.pow(1 - pred, 2) * pos_inds
-    neg_loss = torch.log(1 - pred + eps) * torch.pow(pred, 2) * neg_weights * neg_inds
+    pos_loss = torch.log(pred + eps) * torch.pow(1 - pred, gamma) * pos_inds
+    neg_loss = (
+        torch.log(1 - pred + eps) * torch.pow(pred, gamma) * neg_weights * neg_inds
+    )
 
     # print(pos_loss)
     num_pos = pos_inds.float().sum()

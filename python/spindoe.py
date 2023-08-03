@@ -1,17 +1,18 @@
 """
 SpinDOE class for the spin estimation from images 
 """
-from argparse import ArgumentParser
-import matplotlib.pyplot as plt
-import cv2
-from pathlib import Path
-import numpy as np
-import typing
-from doe import DOE
-from utils import get_time
 import time
-from spin_regressor import SpinRegressor
+import typing
+from argparse import ArgumentParser
+from pathlib import Path
+
+import cv2
+import matplotlib.pyplot as plt
+import numpy as np
+from doe import DOE
 from scipy.spatial.transform import Rotation as R
+from spin_regressor import SpinRegressor
+from utils import get_time
 
 
 class SpinDOE:
@@ -25,12 +26,10 @@ class SpinDOE:
         heatmaps = []
         filt_t = []
         filt_rots = []
+        spin_vecs = []
         valid_idx = []
         for i in range(len(imgs)):
-            # img = cv2.cvtColor(imgs[i], cv2.COLOR_BGR2GRAY)
             rot, heatmap, mask, keypoints = self.doe.estimate_single(imgs[i])
-            # plt.imshow(heatmap)
-            # plt.show()
             # Filter out the captures where the ball orientation is not gotten
             if rot is not None:
                 filt_rots.append(rot)
@@ -53,11 +52,7 @@ class SpinDOE:
         dt = ts - t0
         spin_vecs = spin_vec.reshape(3, 1) * dt.reshape(1, -1)
         spin_rots = R.from_rotvec(spin_vecs.T)
-        # print(spin_vecs.T)
-        # print(spin_rots[3])
-        # print(init_rot)
         pred_rots = spin_rots * init_rot
-        # print(pred_rots)
         return pred_rots
 
     def plot_dots(self, img, rot, color=None):
@@ -67,6 +62,7 @@ class SpinDOE:
     def debug(self, t, imgs):
         assert len(t) == len(imgs)
         spin, rots, heatmaps, valid_idx = self.estimate(t, imgs)
+        # spin = -spin
         if spin is not None:
             pred_rots = self.predicted_rots(
                 rots[valid_idx[0]], t[valid_idx[0]], t, spin
@@ -74,7 +70,6 @@ class SpinDOE:
         n = len(imgs)
         aug_imgs = []
         for i in range(n):
-            # img = cv2.cvtColor(imgs[i], cv2.COLOR_BGR2GRAY)
             # Plot the rotations estimated with DOE
             if rots[i] is None:
                 aug_img = imgs[i]
@@ -118,42 +113,39 @@ class SpinDOE:
 
 if __name__ == "__main__":
 
-    # dot_detector_model = Path().cwd().parent / "data" / "model" /
-    dot_detector_model = Path(
-        "/home/gossard/Git/spindoe/python/dot_detection2/zviyw74y/checkpoints/epoch=4-step=1100.ckpt"
+    dot_detector_model = Path().cwd().parent / "data" / "model" / "spindoe.ckpt"
+    spindoe = SpinDOE(dot_detector_model)
+    parser = ArgumentParser(
+        prog="SpinDOE", description="Estimates the spin of a dotted table tennis ball"
     )
+    parser.add_argument(
+        "-d",
+        "--dir",
+        default=Path(
+            "../data/test/",
+            help="Directory where the sequential ball images are saved",
+        ),
+    )
+    args = parser.parse_args()
     # Get the images from the test directory
-    # img_dir = Path.cwd().parent / "data" / "test"
-    img_dir = Path().cwd().parent / "data" / "test"
-    img_dir = Path("/home/gossard/Nextcloud/tabletennis/trajectory_dataset/7/")
-    img_paths = sorted(list(img_dir.glob("*.png")))
+    img_paths = sorted(list(args.dir.glob("*.png")))
     imgs = []
     times = []
     for path in img_paths:
         t = get_time(path)
         times.append(t)
         img = cv2.imread(str(path))
-        img = img[10:-10, 10:-10]
-        # plt.imshow(img)
-        # plt.show()
+        img = cv2.cvtColor(
+            img, cv2.COLOR_BGR2RGB
+        )  # Because probably read with cv2.imread
         imgs.append(img)
 
     times = np.array(times)
-    # parser = ArgumentParser(
-    #     prog="SpinDOE", description="Estimates the spin of a dotted table tennis ball"
-    # )
-    # parser.add_argument(
-    #     "-d",
-    #     "--dir",
-    #     default=Path(
-    #         "../data/test/", help="Directory where the sequential ball images are saved"
-    #     ),
-    # )
-    # args = parser.parse_args()
-    spindoe = SpinDOE(dot_detector_model)
-    t1 = time.time()
-    # spin, rots, heatmaps, valid_idx = spindoe.estimate(times, imgs)
-    # print("Runtime: {}".format(time.time() - t1))
     spin, rots, heatmaps, valid_idx = spindoe.debug(times, imgs)
 
-    # print(spin)
+    # IMPORTANT
+    # Spin is in the frame of the first valid orientation. So it needs to be
+    # transformed back to the frame used for the reference dot pattern.
+    corrected_spin = rots[valid_idx[0]].inv().apply(spin)
+    print("Spin in rad/s", corrected_spin)
+    print("spin norm in rps", np.linalg.norm(corrected_spin) / (2 * np.pi))

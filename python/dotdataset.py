@@ -2,14 +2,14 @@
 Dataset class for the dotted ball images
 """
 
-import torch
 import cv2
-from torch.utils.data import Dataset
-import pandas as pd
-from torchvision import transforms as T
-import numpy as np
-from torchvision.io import read_image
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import torch
+from torch.utils.data import Dataset
+from torchvision import transforms as T
+from torchvision.io import read_image
 
 
 def read_ball_image(img_path, size=60, RGB=True):
@@ -17,6 +17,7 @@ def read_ball_image(img_path, size=60, RGB=True):
     if not RGB:
         img = T.Grayscale()(img)
     # Convert image to range [0,1] and floats
+    img = T.Resize((size, size), antialias=True)(img)
     img = img.float() / 255.0
     return img
 

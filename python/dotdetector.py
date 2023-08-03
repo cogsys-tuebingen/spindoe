@@ -1,19 +1,19 @@
+import numpy as np
+import pytorch_lightning as pl
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torchvision
 import wandb
-from torchvision import transforms as T
-import pytorch_lightning as pl
 from loss import FocalLoss
-import numpy as np
+from torchvision import transforms as T
 
 
 class Layer(nn.Module):
     def __init__(self, in_dim, out_dim, act_fn=nn.ReLU()):
         super().__init__()
         self.conv = nn.Conv2d(in_dim, out_dim, 3, padding=1)
-        self.batch_norm = nn.BatchNorm2d(out_dim, affine=False)
+        self.batch_norm = nn.BatchNorm2d(out_dim, affine=True)
         self.act_fn = act_fn
 
     def forward(self, x):
@@ -27,7 +27,7 @@ class DotDetector(pl.LightningModule):
     def __init__(
         self,
         input="rgb",
-        layers="64, 64, 128, 128,  256, 256, 128, 128, 64, 64",
+        layers="64, 64, 128, 256, 256, 128, 64, 64",
         act_fn="leaky_relu",
         last_act_fn="sigmoid",
         loss_fn="focal_loss",
@@ -71,7 +71,9 @@ class DotDetector(pl.LightningModule):
 
         ## Creating the NN architecture
         self.layers = []
-        for dim in tuple(map(int, layers.split(","))):
+        layer_tuple = tuple(map(int, layers.split(",")))
+        for i in range(len(layer_tuple)):
+            dim = layer_tuple[i]
             if prev_dim not in (1, 3):
                 if prev_dim < dim:
                     self.layers.append(nn.MaxPool2d(2, stride=2, padding=0))

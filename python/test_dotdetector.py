@@ -2,14 +2,15 @@
 Script to test the dot detector on the images in the data/test directory
 """
 
-from dotdetector import DotDetector
-from pathlib import Path
-from dotdataset import read_ball_images
-import matplotlib.pyplot as plt
 import time
-import torch
-from torchvision import transforms as T
+from pathlib import Path
+
+import matplotlib.pyplot as plt
 import numpy as np
+import torch
+from dotdataset import read_ball_images
+from dotdetector import DotDetector
+from torchvision import transforms as T
 
 if __name__ == "__main__":
     # torch.device("cuda")
@@ -18,9 +19,7 @@ if __name__ == "__main__":
     img_dir = Path.cwd().parent / "data" / "test"
     img_paths = list(img_dir.glob("*.png"))
 
-    dot_detector_model = Path(
-        "/home/gossard/Git/spindoe/python/dot_detection2/g3b8aji9/checkpoints/epoch=5-step=1320.ckpt"
-    )
+    dot_detector_model = Path().cwd().parent / "data" / "model" / "spindoe.ckpt"
     dot_detector = DotDetector.load_from_checkpoint(str(dot_detector_model))
     # dot_detector.eval().cuda(device=0)
     dot_detector.eval()

@@ -2,29 +2,29 @@
 Dotted-ball Orientation Estimator (DOE)
 """
 
-from dotdetector import DotDetector
-import time
 import shutil
+import threading
+import time
 from pathlib import Path
-from baygeohasher import BayGeoHasher
+from queue import Queue
+
+import cv2
 import matplotlib.pyplot as plt
-from dotdataset import read_ball_images
 import numpy as np
-from pathlib import Path
 import torch
+from baygeohasher import BayGeoHasher
+from dotdataset import read_ball_images
+from dotdetector import DotDetector
 from torchvision import transforms as T
 from utils import read_pattern
-import cv2
-import threading
-from queue import Queue
 
 
 class DOE:
     def __init__(self, dot_detector_model_path, use_gpu=False) -> None:
         self.use_gpu = use_gpu
-        self.thresh_ratio = 0.7
+        self.thresh_ratio = 0.3
         self.size = 60  # Size of the image input
-        self.rmse_thres = 0.5  # rmse theshold for estimated rotation to be accepted
+        self.rmse_thres = 0.5  # RMSE threshold for estimated rotation to be accepted
 
         # Dots' Color for GUI
         self.dot_color = (255, 0, 0)
@@ -72,23 +72,8 @@ class DOE:
 
     def extract_dots(self, heatmap):
         mask = cv2.inRange(heatmap, self.thresh_ratio, (255))
-        # mask = cv2.dilate(mask, np.ones((3, 3), np.uint8))
-        # plt.imshow(mask)
-        # plt.show()
         keypoints = self.blob_detector.detect(mask)
-        # print("number of keypoints detected: {}".format(len(keypoints)))
         return mask, keypoints
-
-    def filter_points(self, points):
-        if len(points) > 5:
-            highest = np.argsort(points[:, 2])
-            f_points = points[highest[-5:]]
-            print(f_points)
-            print(points)
-            print()
-        else:
-            f_points = points
-        return f_points
 
     def estimate_single(self, img):
         tensor = self.process_input(img)
@@ -99,8 +84,6 @@ class DOE:
         else:
             heatmap = heatmap.detach().numpy().squeeze()
 
-        # plt.imshow(heatmap)
-        # plt.show()
         mask, keypoints = self.extract_dots(heatmap)
 
         # DOE cannot work with less than 3 points
@@ -109,10 +92,7 @@ class DOE:
 
         dots = self.kps2pt3d(keypoints)
 
-        # dot = self.filter_points(dots)
-
         idx, rot, rmse = self.geohasher.identify(dots)
-        # print(rmse)
 
         # If the "reprojection error" is too big, doe is assumed to have failed
         if rmse > self.rmse_thres:
@@ -127,7 +107,6 @@ class DOE:
             tensor = self.process_input(img)
             concat_tensor.append(tensor)
         concat_tensor = torch.stack(concat_tensor)
-        # print(tensor)
         heatmaps = self.dot_detector(concat_tensor)
         if self.use_gpu:
             heatmaps = heatmaps.cpu().detach().numpy().squeeze()
@@ -137,8 +116,6 @@ class DOE:
         rots = []
         masks = []
         for heatmap in heatmaps:
-            # plt.imshow(heatmap)
-            # plt.show()
             mask, keypoints = self.extract_dots(heatmap)
             # DOE cannot work with less than 3 points
             if len(keypoints) < 3:
@@ -156,45 +133,6 @@ class DOE:
             masks.append(mask)
 
         return rots, heatmaps, masks, None
-
-    def multi_treaded_estimate(self, imgs):
-        concat_tensor = []
-        for img in imgs:
-            tensor = self.process_input(img)
-            concat_tensor.append(tensor)
-        concat_tensor = torch.stack(concat_tensor)
-        # print(tensor)
-        heatmaps = self.dot_detector(concat_tensor)
-        if self.use_gpu:
-            heatmaps = heatmaps.cpu().detach().numpy().squeeze()
-        else:
-            heatmaps = heatmaps.detach().numpy().squeeze()
-
-        rots = []
-        masks = []
-        for heatmap in heatmaps:
-            q.put(heatmap)
-        for t in range(NUM_THREADS):
-            worker = threading.Thread(target=self.dot_2_rots)
-            worker.daemon = True
-            worker.start()
-        q.join()
-
-        return None, None, None
-
-    def dot_2_rots(self):
-        global q
-        while True:
-            heatmap = q.get()
-            mask, keypoints = self.extract_dots(heatmap)
-            # DOE cannot work with less than 3 points
-            if len(keypoints) < 3:
-                return None, mask, heatmap
-
-            dots = self.kps2pt3d(keypoints)
-
-            idx, rot, rmse = self.geohasher.identify(dots)
-            q.task_done()
 
     def kps2pt3d(self, kps):
         n = len(kps)
@@ -215,9 +153,9 @@ class DOE:
             if len(img.shape) == 2:
                 tensor = T.ToTensor()(img)
             else:
-                img = cv2.cvtColor(
-                    img, cv2.COLOR_BGR2RGB
-                )  # Because probably read with cv2.imread
+                # img = cv2.cvtColor(
+                #     img, cv2.COLOR_BGR2RGB
+                # )  # Because probably read with cv2.imread
                 # plt.imshow(img)
                 # plt.show()
                 tensor = T.ToTensor()(img)
@@ -286,23 +224,15 @@ class DOE:
 
 if __name__ == "__main__":
     use_gpu = True
-    dot_detector_model = Path(
-        "/home/gossard/Git/spindoe/python/dot_detection2/zviyw74y/checkpoints/epoch=4-step=1100.ckpt"
-    )
+    dot_detector_model = Path().cwd().parent / "data" / "model" / "spindoe.ckpt"
     # Test the doe
     doe = DOE(dot_detector_model, use_gpu)
     # Get the images from the test directory
-    # img_dir = Path.cwd().parent / "data" / "test"
-    # img_paths = list(img_dir.glob("*.png"))
-    img_dir = Path("/home/gossard/Nextcloud/tabletennis/trajectory_dataset/")
-    test_dir = Path("/home/gossard/Nextcloud/tabletennis/doe_test_imgs")
-    test_dir2 = Path(
-        "/home/gossard/Code/tt_ws/src/tt_tracking_system/tt_spindetection/spin_motor_dots_andro_ball/ball_dot_12_up_to"
-    )
+    img_dir = Path.cwd().parent / "data" / "test"
     img_paths = list(img_dir.glob("**/*.png"))
 
     # Process
-    # rdm_idx = np.random.choice(np.arange(len(img_paths)), 6, replace=False)
+    rdm_idx = np.random.choice(np.arange(len(img_paths)), 6, replace=False)
     rdm_idx = np.arange(6)
     aug_imgs = []
     heatmaps = []
@@ -310,9 +240,8 @@ if __name__ == "__main__":
     imgs = []
     i = 0
     for idx in rdm_idx:
-        # img = cv2.imread(str(img_paths[idx]))
         img = cv2.imread(str(img_paths[idx]))
-        img = img[11:-11, 11:-11]
+        # img = img[10:-10, 10:-10]
         # plt.imshow(img)
         # plt.show()
         imgs.append(img)
