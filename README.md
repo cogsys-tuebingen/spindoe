@@ -5,11 +5,17 @@
 This repository contains the code for SpinDOE, a table tennis ball spin estimation algorithm. The algorithm is described in the paper [Gossard et al.](https://arxiv.org/abs/2303.03879).
 
 ## Use
-Images are to be saved with their timestamps in microseconds as their name: "897987340.png"
+Images are to be saved with their timestamps in nanoseconds as their name: "686338211101.png"
 
 ```python
 python spindoe.py
 ```
+
+You should obtain the following output from running the script:
+
+![spindoe_results](./img/spindoe_render.png)
+
+The red dots are the predicted dot positions and the green dot is the predicted logo position using DOE and the white dots are the predicted dot positions using the estimated spin value and the first valid orientation.
 
 ## Ball stencil
 To accurately, easily and in a repeatable manner draw the dot on the table tennis balls, a 3D printed stencil is available in the cad/ directory. 
