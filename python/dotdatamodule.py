@@ -3,23 +3,23 @@ Dot dataset pytorch ligntning datamodule
 It handles all the data augmentation necessary for training.
 """
 
-import pytorch_lightning as pl
-from torch.distributions import transforms
-from torch.utils.data import DataLoader, ConcatDataset, random_split
+import re
 from pathlib import Path
 from typing import Optional
-from torchvision import transforms as T
-import re
-import numpy as np
-from dotdataset import DotDataset
-from data_augmentation import MotionBlur, RandomFlip, CustomCompose
 
+import numpy as np
+import pytorch_lightning as pl
+from data_augmentation import CustomCompose, MotionBlur, RandomFlip
+from dotdataset import DotDataset
+from torch.distributions import transforms
+from torch.utils.data import ConcatDataset, DataLoader, random_split
+from torchvision import transforms as T
 
 data_aug_transform = CustomCompose(
     [
         MotionBlur(),
         RandomFlip(),
-        T.ColorJitter(brightness=0.05, contrast=0.05, saturation=0.05, hue=0.05),
+        # T.ColorJitter(brightness=0.05, contrast=0.05, saturation=0.05, hue=0.05),
     ]
 )
 
@@ -31,7 +31,7 @@ class DotDataModule(pl.LightningDataModule):
         batch_size: int = 32,
         RGB: bool = True,
         num_workers: int = 8,
-        data_aug: bool = False,  # TODO: Implement data_auf
+        data_aug: bool = False,
     ):
         super().__init__()
         self.data_dir = Path(data_dir)
@@ -47,11 +47,9 @@ class DotDataModule(pl.LightningDataModule):
     def setup(self, stage: Optional[str] = None):
         # Get all the index files
         self.index_paths = list(self.data_dir.glob("**/index.csv"))
-        # print(self.index_paths)
-        # Seperate the different datasets into train, val, test according to their rotation axis defined by their dot
+        # Separate the different datasets into train, val, test according to their rotation axis defined by their dot
         rot_axis = []
         for path in self.index_paths:
-            # print(str(path))
             result = re.search("ball_dot_(.*)_up_to", str(path))
             dot_idx = int(result.group(1))
             rot_axis.append(dot_idx)
@@ -65,9 +63,6 @@ class DotDataModule(pl.LightningDataModule):
         i += 1
         self.ax_val = [arg_sorted_axis[i]]
         self.ax_train = arg_sorted_axis[i + 1 :]
-        # print(self.ax_train)
-        # print(self.ax_val)
-        # print(self.ax_test)
         self.train_datasets = []
         self.test_datasets = []
         self.val_datasets = []
@@ -110,10 +105,7 @@ class DotDataModule(pl.LightningDataModule):
 
 
 if __name__ == "__main__":
-    data_dir = Path(
-        "/home/gossard/Code/tt_ws/src/tt_tracking_system/tt_spindetection/"
-        # "/home/gossard/Code/tt_ws/src/tt_tracking_system/tt_spindetection/spin_motor_dots_andro_ball/"
-    )
+    data_dir = Path("/home/gossard/Code/tt_ws/src/tt_tracking_system/tt_spindetection/")
     data_module = DotDataModule(data_dir)
     data_module.setup()
     print("Number of train data: {}".format(data_module.n_train))

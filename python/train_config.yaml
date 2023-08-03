@@ -6,14 +6,14 @@ model:
   last_act_fn: sigmoid
   loss_fn: focal_loss
 data:
-  data_dir: /home/gossard/Code/tt_ws/src/tt_tracking_system/tt_spindetection/spin_motor_dots_andro_ball
+  data_dir: /home/gossard/Code/tt_ws/src/tt_tracking_system/tt_spindetection/
   batch_size: 32 
   RGB: True 
-  data_aug: False
+  data_aug: True
 trainer:
   accelerator: gpu
   default_root_dir: .
-  max_epochs: 50
+  max_epochs: 15
   callbacks:
     - class_path: pytorch_lightning.callbacks.EarlyStopping
       init_args:

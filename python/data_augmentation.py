@@ -1,35 +1,40 @@
 """
 Transforms used for the data augmentation of the dataset
 """
-import numpy as np
-from kornia.filters.motion import motion_blur
-import torchvision.transforms.functional as F
-from torchvision import transforms as T
 import matplotlib.pyplot as plt
-
-
-# class ToTensor(object):
-#     def __init__(self):
-#         pass
-
-#     def __call__(self, img, heatmap):
-#         t_img = T.ToTensor()(img)
-#         t_heatmap = T.ToTensor()(heatmap)
-#         return t_img, t_heatmap
+import numpy as np
+import torchvision.transforms.functional as F
+from kornia.filters.motion import motion_blur
+from torchvision import transforms as T
 
 
 class CustomCompose(object):
     """
-    Takes 2 arg instead of one
+    Enables to compose transformations with 2 inputs (input and target)
+    This is necessary for transforms like flipping
     """
 
     def __init__(self, transforms):
         self.transforms = transforms
 
-    def __call__(self, img, tar):
+    def __call__(self, img, target):
         for t in self.transforms:
-            img, tar = t(img, tar)
-        return img, tar
+            img, target = t(img, target)
+        return img, target
+
+
+class ColorAugmentation(object):
+    """
+    Data augmentation for color changes
+    """
+
+    def __init__(self):
+        self.color_aug = T.ColorJitter(
+            brightness=0.05, contrast=0.05, saturation=0.05, hue=0.05
+        )
+
+    def __call__(self, img, heatmap):
+        return self.color_aug(img), heatmap
 
 
 class MotionBlur(object):
@@ -38,7 +43,7 @@ class MotionBlur(object):
 
     def __call__(self, img, heatmap):
         if np.random.random() > 0.2:
-            kernel_size = 2 * np.random.randint(1, 6) + 1
+            kernel_size = 2 * np.random.randint(1, 8) + 1
             angle = 2 * np.pi * np.random.random()
             direction = -1 + 2 * np.random.random()
             img = img[None, :]
