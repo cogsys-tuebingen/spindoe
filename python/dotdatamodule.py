@@ -9,7 +9,8 @@ from typing import Optional
 
 import numpy as np
 import pytorch_lightning as pl
-from data_augmentation import CustomCompose, MotionBlur, RandomFlip
+from data_augmentation import (ColorAugmentation, CustomCompose, MotionBlur,
+                               RandomFlip)
 from dotdataset import DotDataset
 from torch.distributions import transforms
 from torch.utils.data import ConcatDataset, DataLoader, random_split
@@ -18,8 +19,8 @@ from torchvision import transforms as T
 data_aug_transform = CustomCompose(
     [
         MotionBlur(),
+        ColorAugmentation(),
         RandomFlip(),
-        # T.ColorJitter(brightness=0.05, contrast=0.05, saturation=0.05, hue=0.05),
     ]
 )
 
