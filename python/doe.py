@@ -22,9 +22,9 @@ from utils import read_pattern
 class DOE:
     def __init__(self, dot_detector_model_path, use_gpu=False) -> None:
         self.use_gpu = use_gpu
-        self.thresh_ratio = 0.3
+        self.thresh_ratio = 0.1
         self.size = 60  # Size of the image input
-        self.rmse_thres = 0.5  # RMSE threshold for estimated rotation to be accepted
+        self.rmse_thres = 0.12  # RMSE threshold for estimated rotation to be accepted
 
         # Dots' Color for GUI
         self.dot_color = (255, 0, 0)
@@ -87,7 +87,7 @@ class DOE:
         mask, keypoints = self.extract_dots(heatmap)
 
         # DOE cannot work with less than 3 points
-        if len(keypoints) < 3:
+        if len(keypoints) < 4:
             return None, heatmap, mask, keypoints
 
         dots = self.kps2pt3d(keypoints)
