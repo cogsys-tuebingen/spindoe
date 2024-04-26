@@ -19,8 +19,8 @@ from torchvision import transforms as T
 data_aug_transform = CustomCompose(
     [
         MotionBlur(),
-        ColorAugmentation(),
-        RandomFlip(),
+        # ColorAugmentation(),
+        # RandomFlip(),
     ]
 )
 
