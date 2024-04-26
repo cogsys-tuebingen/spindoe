@@ -171,8 +171,8 @@ class DOE:
         return tensor
 
     def reproject_dots(self, rot, img, color=None):
-        points_rotated = rot.inv().apply(self.ref_pattern)
-        logo_rotated = rot.inv().apply(np.array([[0, 0, 1]]))
+        points_rotated = rot.apply(self.ref_pattern)
+        logo_rotated = rot.apply(np.array([[0, 0, 1]]))
         if color is None:
             pattern_img = self.draw_visible_3dpoints_on_image(
                 points_rotated, img, self.dot_color
