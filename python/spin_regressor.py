@@ -21,8 +21,7 @@ def IQM(x):
 
 
 class SpinRegressor:
-    def __init__(self, n=3, k=20, t=1e-1, d=2) -> None:
-
+    def __init__(self, n=4, k=30, t=5e-2, d=2) -> None:
         # RANSAC parameters
         self.n = n  # Initial sample size for regression
         self.k = k  # Maximum number of iterations
@@ -139,7 +138,9 @@ class SpinRegressor:
         # print(phis)
         # Necessary to unwrap the angles for the linear regression
         # phis = np.unwrap(phis)
+        # print(phis)
         phis, _ = self.unwrap(t_sel, phis)
+        # print(phis)
         # print(phis)
         spin_norm = self.spin_norm_reg(phis, t_sel)
         # print(spin_norm)
@@ -150,6 +151,7 @@ class SpinRegressor:
         return spin, valid_idx
 
     def unwrap(self, t, phis, opposite_sign=False):
+        max_spin = 800
         # plt.figure()
         # plt.scatter(t, phis, marker="x", label="0")
         # print()
@@ -183,6 +185,7 @@ class SpinRegressor:
         # print(median_delta)
         # HACK: seems to work with this ratio
         ratio = 0.5 + np.exp(-sign * median_delta / 300)
+
         for i in range(1, len(phis)):
             # print(i)
             if sign * delta[i - 1] < sign * (1 - ratio) * median_delta:
@@ -195,6 +198,7 @@ class SpinRegressor:
                 # print(delta[i - 1])
                 # print(1.3 * median_delta)
                 phis[i:] = phis[i:] - sign * 2 * np.pi
+
         # plt.scatter(t, phis, label="2", alpha=0.5)
         # plt.legend()
         # plt.show()
@@ -222,9 +226,11 @@ class SpinRegressor:
         best_err = 1e6
         # RANSAC Loop
         while iter < self.k:
-            maybe_idx = np.sort(
-                np.random.choice(np.arange(n_rots), self.n, replace=False)
-            )
+            rand_start_idx = np.random.randint(n_rots - self.n)
+            maybe_idx = np.arange(rand_start_idx, rand_start_idx + self.n)
+            # maybe_idx = np.sort(
+            #     np.random.choice(np.arange(n_rots), self.n, replace=False)
+            # )
             maybe_y = y[maybe_idx]
             axis, u1, u2 = self.get_spin_axis(maybe_y)
 
