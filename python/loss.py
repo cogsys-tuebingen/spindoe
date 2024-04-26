@@ -19,7 +19,7 @@ def _neg_loss(pred, gt):
 
     loss = 0
     gamma = 1
-    # alpha = 0.75
+    # alpha = 0.25
 
     pos_loss = torch.log(pred + eps) * torch.pow(1 - pred, gamma) * pos_inds
     neg_loss = (
@@ -36,6 +36,8 @@ def _neg_loss(pred, gt):
     if num_pos == 0:
         loss = loss - neg_loss
     else:
+        # Alpha form
+        # loss = loss - (alpha * pos_loss + (1 - alpha) * neg_loss) / num_pos
         loss = loss - (pos_loss + neg_loss) / num_pos
     # print(loss)
     return loss
