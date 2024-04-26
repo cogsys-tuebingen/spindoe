@@ -30,7 +30,7 @@ class ColorAugmentation(object):
 
     def __init__(self):
         self.color_aug = T.ColorJitter(
-            brightness=0.05, contrast=0.05, saturation=0.05, hue=0.05
+            brightness=0.1, contrast=0.1, saturation=0.2, hue=0.05
         )
 
     def __call__(self, img, heatmap):
@@ -43,7 +43,7 @@ class MotionBlur(object):
 
     def __call__(self, img, heatmap):
         if np.random.random() > 0.2:
-            kernel_size = 2 * np.random.randint(1, 8) + 1
+            kernel_size = 2 * np.random.randint(1, 10) + 1
             angle = 2 * np.pi * np.random.random()
             direction = -1 + 2 * np.random.random()
             img = img[None, :]
