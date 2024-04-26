@@ -1,16 +1,18 @@
 """
 Bayesian Geometric Hasher
 Based on:  https://www.researchgate.net/publication/3344381_Geometric_Hashing_An_Overview
+
 """
 
-import numpy as np
 import time
+
+import matplotlib.pyplot as plt
+import numpy as np
+import scipy
+from kent_distr import kent
+from scipy.spatial.transform import Rotation as R
 from tqdm import tqdm
 from utils import read_pattern, write_pattern
-from scipy.spatial.transform import Rotation as R
-import matplotlib.pyplot as plt
-from kent_distr import kent
-import scipy
 
 
 class BayGeoHasher:
@@ -24,7 +26,6 @@ class BayGeoHasher:
         kappa: float = 5e2,
         beta: float = 0,
     ) -> None:
-
         self.threshold = threshold
         self.k_neighbour = k_neighbour
         self.upper_score_perc = upper_score_perc
@@ -149,7 +150,8 @@ class BayGeoHasher:
 
     def identify(self, obs_points):
         """
-        Returns the idx of the first 2 observed dots, the corresponding rotation and reprojection error
+        Returns the idx of the first 2 observed dots, the corresponding
+        rotation from the reference pattern to the observed pattern and reprojection error
 
         :param obs_points np.array: Array of points [n x 3]
         """
@@ -216,6 +218,7 @@ class BayGeoHasher:
         Check the rmse of the observed points compared with the reference points when
         using as basis ref_points i and j
         It returns the estimate rotation using Kalbsch's algorithm and the corresponding rmse
+        It is the rotation that transform the reference pattern into the observed pattern
 
          :param i int: idx of the 1st point used for the generating the basis
          :param j int: idx of the 2nd point used for generating the basis
