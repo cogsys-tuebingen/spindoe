@@ -40,7 +40,7 @@ class SpinDOE:
 
         valid_idx = np.array(valid_idx)
         filt_t = np.array(filt_t)
-        if len(valid_idx) < 5:
+        if len(valid_idx) < 4:
             return None, rots, heatmaps, valid_idx
         spin, spin_valid_idx = self.spin_regressor.RANSAC_regress(filt_t, filt_rots)
 
