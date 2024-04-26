@@ -12,12 +12,11 @@ from torchvision import transforms as T
 from torchvision.io import read_image
 
 
-def read_ball_image(img_path, size=60, RGB=True):
+def read_ball_image(img_path, RGB=True):
     img = read_image(str(img_path))
     if not RGB:
         img = T.Grayscale()(img)
     # Convert image to range [0,1] and floats
-    img = T.Resize((size, size), antialias=True)(img)
     img = img.float() / 255.0
     return img
 
@@ -63,7 +62,7 @@ class DotDataset(Dataset):
     def __getitem__(self, idx):
         img_path = self.index[0][idx]
         quat = self.index.loc[idx, 1:4].to_numpy(dtype=np.float64)
-        img = read_ball_image(img_path, size=self.size, RGB=self.RGB)
+        img = read_ball_image(img_path, RGB=self.RGB)
         orig_h, orig_w = img.shape[1:]
         img = T.Resize((self.size, self.size), antialias=True)(img)
 
