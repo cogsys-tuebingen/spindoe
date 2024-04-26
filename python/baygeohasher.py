@@ -238,7 +238,11 @@ class BayGeoHasher:
         ref_points = np.concatenate([ref_points, corresponding_ref_points], axis=0)
 
         # Get a better approximation
-        rot, rmse = R.align_vectors(ref_points, obs_points)
+        n_obs = len(obs_points)
+        # print(n_obs)
+        rot, rmse = R.align_vectors(
+            ref_points, obs_points, weights=np.ones(n_obs) / n_obs
+        )
 
         corresponding_ref_points_idx = [i, j]
         for point in obs_points[2:]:
@@ -265,7 +269,7 @@ class BayGeoHasher:
         # print("Error comparison")
         # print(np.linalg.norm(error))
         # print(rmse)
-        return rot, rmse
+        return rot.inv(), rmse
 
 
 def observable_dots(point_list, d_thres):
